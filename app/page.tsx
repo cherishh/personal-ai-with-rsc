@@ -7,7 +7,6 @@ import { UserMessage } from '@/components/llm-stocks/message';
 
 import { type AI } from './action';
 import { ChatScrollAnchor } from '@/lib/hooks/chat-scroll-anchor';
-import { FooterText } from '@/components/footer';
 import Textarea from 'react-textarea-autosize';
 import { useEnterSubmit } from '@/lib/hooks/use-enter-submit';
 import {
@@ -170,7 +169,6 @@ export default function Page() {
                 </div>
               </div>
             </form>
-            <FooterText className="hidden sm:block" />
           </div>
         </div>
       </div>
