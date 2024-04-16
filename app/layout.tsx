@@ -10,39 +10,18 @@ import { Header } from '@/components/header';
 import { Providers } from '@/components/providers';
 
 const meta = {
-  title: 'AI RSC Demo',
+  title: 'RSC 3000',
   description:
     'Demo of an interactive financial assistant built using Next.js and Vercel AI SDK.',
 };
 export const metadata: Metadata = {
   ...meta,
   title: {
-    default: 'AI RSC Demo',
-    template: `%s - AI RSC Demo`,
-  },
-  icons: {
-    icon: '/favicon.ico',
-    shortcut: '/favicon-16x16.png',
-    apple: '/apple-touch-icon.png',
-  },
-  twitter: {
-    ...meta,
-    card: 'summary_large_image',
-    site: '@vercel',
-  },
-  openGraph: {
-    ...meta,
-    locale: 'en-US',
-    type: 'website',
+    default: 'RSC 3000',
+    template: `%s - RSC 3000`,
   },
 };
 
-export const viewport = {
-  themeColor: [
-    { media: '(prefers-color-scheme: light)', color: 'white' },
-    { media: '(prefers-color-scheme: dark)', color: 'black' },
-  ],
-};
 
 export default function RootLayout({
   children,
