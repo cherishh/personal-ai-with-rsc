@@ -79,10 +79,7 @@ export function Purchase({
             <span className="absolute text-xs bottom-1 start-0 text-zinc-400">
               10
             </span>
-            <span className="absolute text-xs -translate-x-1/2 bottom-1 start-1/3 text-zinc-400 rtl:translate-x-1/2">
-              100
-            </span>
-            <span className="absolute text-xs -translate-x-1/2 bottom-1 start-2/3 text-zinc-400 rtl:translate-x-1/2">
+            <span className="absolute text-xs -translate-x-1/2 bottom-1 start-1/2 text-zinc-400 rtl:translate-x-1/2">
               500
             </span>
             <span className="absolute text-xs bottom-1 end-0 text-zinc-400">
