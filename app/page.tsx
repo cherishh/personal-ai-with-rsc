@@ -51,10 +51,10 @@ export default function Page() {
     };
   }, [inputRef]);
 
-  useEffect(() => {
-    const username = window.prompt('我该怎么称呼您？', '神秘访客');
-    setUserName(username || '神秘访客');
-  }, []);
+  // useEffect(() => {
+  //   const username = window.prompt('我该怎么称呼您？', '神秘访客');
+  //   setUserName(username || '神秘访客');
+  // }, []);
 
   return (
     <div>

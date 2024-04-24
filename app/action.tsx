@@ -25,6 +25,9 @@ import { HttpsProxyAgent } from 'https-proxy-agent';
 import { StockSkeleton } from '@/components/llm-stocks/stock-skeleton';
 import { EventsSkeleton } from '@/components/llm-stocks/events-skeleton';
 import { StocksSkeleton } from '@/components/llm-stocks/stocks-skeleton';
+import { EventsSkeleton as CalendarEventsSkeleton } from '@/components/llm-calendar/events-skeleton';
+import { Events as CalendarEvents } from '@/components/llm-calendar';
+import { Event } from '@/components/llm-calendar/event';
 
 
 let isProxy = process.env.NODE_ENV === 'development';
@@ -125,7 +128,7 @@ async function submitUserMessage(content: string) {
       {
         role: 'system',
         content: `\
-You are an incredibly smart, intelligent, funny and friendly AI assistant, dedicated to server Zhongxi, your one and only user.
+You are a smart, intelligent, funny and friendly AI assistant, dedicated to server Zhongxi, your one and only user.
 As of toning, Most of the time, you can mimic Chandler Bing from Friends, unless you and the user are discussing some serious topics.
 The user may ask you about 1)his stock portfolio, 2)his calendar, 3)his social media, or 4)any other general questions. And you'll be given the access to the necessary APIs to help him.
 
@@ -147,16 +150,20 @@ Besides that, you can also chat with users and do some calculations if needed.
 # Calendar
 Similarly, you can show the user's calendar events, and the user can ask you to add or remove events. 
 
-If the user asks you to add an event, if the event was mentioned, call \`add_event\` to add the event, and show the resulting calendar UI to the user for confirmation. If the event was not mentioned, ask the user for more details and then add the event & show the resulting calendar UI.
+If the user asks you to show the calendar, call \`get_calendar_events\` to get the events between the user's selected dates.
+If the user asks you to add an event, if the event was mentioned, call \`add_event\` to add the event. If event detail was not mentioned, i.e. only the date was mentioned, or only the headline was mentioned, ask the user for the missing details.
 If the user asks you to remove an event, call \`remove_event\` to remove the event.
-If the user wants to move an event, call \`modify_event\` to move the event to the new date & show the resulting calendar UI to the user for confirmation.
+If the user wants to change an event, call \`modify_event\` to change the event to the new date & show the resulting calendar UI to the user for confirmation.
 
 # Social Media
 If the user asks you what's new on his social media, call \`fetch_social_media\` to get posts in the user's feed, and summarize what's new.
 If the user asks you to post something, call \`post_social_media\` to post the content to the user's feed.
 
-The user's primary language is Chinese. So if you can respond in Chinese, that would be great. If not, English is also fine.
-The user's may also just wanna chat with you, so feel free to chat with him.
+The user's primary language is Chinese. So respond in Chinese.
+The user may also just wanna chat with you, so feel free to chat with him.
+
+Other useful information:
+current date: ${new Date().toISOString().slice(0, 10)}
 `,
       },
       ...aiState.get().map((info: any) => ({
@@ -166,6 +173,54 @@ The user's may also just wanna chat with you, so feel free to chat with him.
       })),
     ],
     functions: [
+      {
+        name: 'get_calendar_events',
+        description:
+          'List user\'s events between user highlighted dates that describe stock activity.',
+        parameters: z.object({
+          startDate: z.string().describe('The start date of the event'),
+          endDate: z.string().describe('The end date of the event'),
+        }),
+      },
+      {
+        name: 'add_event',
+        description:
+          'Add an event to the user calendar. Use this to add an event to the user calendar.',
+        parameters: z.object({
+          startTime: z
+            .string()
+            .describe('The start time of the event, in ISO-8601 format'),
+          endTime: z
+            .string()
+            .describe('The end time of the event, in ISO-8601 format. If not mentioned, default to 1 hour after the start time.'),
+          headline: z.string().describe('The headline of the event'),
+          description: z.string().describe('The description of the event. Can be optional if the user did not specify it.'),
+        }),
+      },
+      {
+        name: 'remove_event',
+        description:
+          'Remove an event from the user calendar. Use this to remove an event from the user calendar.',
+        parameters: z.object({
+          id: z.string().describe('The ID of the event to remove'),
+        }),
+      },
+      {
+        name: 'modify_event',
+        description:
+          'Modify an event in the user calendar. Use this to modify an event in the user calendar.',
+        parameters: z.object({
+          id: z.string().describe('The ID of the event to modify'),
+          newDate: z
+            .string()
+            .describe('The new date of the event, in ISO-8601 format')
+            .optional(),
+          newHeadline: z
+            .string()
+            .describe('The new headline of the event')
+            .optional()
+        }),
+      },
       {
         name: 'show_stock_price',
         description:
@@ -237,6 +292,68 @@ The user's may also just wanna chat with you, so feel free to chat with him.
       reply.done();
       aiState.done([...aiState.get(), { role: 'assistant', content }]);
     }
+  });
+
+  completion.onFunctionCall('get_calendar_events', async ({ startDate, endDate }) => {
+    reply.update(
+      <BotCard>
+        <CalendarEventsSkeleton />
+      </BotCard>,
+    );
+
+    // Simulate fetching events.
+    await sleep(1000);
+
+    reply.done(
+      <BotCard>
+        <CalendarEvents events={[{
+          id: '1',
+          date: '2022-01-01',
+          headline: 'New Year\'s Day',
+          description: 'Celebrate the new year with your friends and family.',
+        }, {
+          id: '2',
+          date: '2022-02-14',
+          headline: 'Valentine\'s Day',
+          description: 'Celebrate love with your significant other.',
+        }]} />
+        <div>{startDate}, {endDate}</div>
+      </BotCard>,
+    );
+
+    aiState.done([
+      ...aiState.get(),
+      {
+        role: 'function',
+        name: 'get_calendar_events',
+        content: `[Events between ${startDate} and ${endDate}]`,
+      },
+    ]);
+  });
+
+  completion.onFunctionCall('add_event', async ({ startTime, endTime, headline, description }) => {
+    reply.update(
+      <BotCard>
+        <div>creating event...</div>
+      </BotCard>,
+    );
+
+    await sleep(1000);
+
+    reply.done(
+      <BotCard>
+        <Event time={[startTime, endTime]} headline={headline} description={description} />
+      </BotCard>,
+    );
+
+    aiState.done([
+      ...aiState.get(),
+      {
+        role: 'function',
+        name: 'add_event',
+        content: `[Added event at ${startTime}: ${headline}]`,
+      },
+    ]);
   });
 
   completion.onFunctionCall('list_stocks', async ({ stocks }) => {
