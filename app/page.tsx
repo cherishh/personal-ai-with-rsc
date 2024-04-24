@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 
 import { useUIState, useActions } from 'ai/rsc';
-import { UserMessage } from '@/components/llm-stocks/message';
+import { UserMessage } from '@/components/message';
 
 import { type AI } from './action';
 import { ChatScrollAnchor } from '@/lib/hooks/chat-scroll-anchor';
@@ -25,6 +25,7 @@ export default function Page() {
   const [inputValue, setInputValue] = useState('');
   const { formRef, onKeyDown } = useEnterSubmit();
   const inputRef = useRef<HTMLTextAreaElement>(null);
+  const [userName, setUserName] = useState('Zhongxi');
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -50,6 +51,11 @@ export default function Page() {
     };
   }, [inputRef]);
 
+  useEffect(() => {
+    const username = window.prompt('我该怎么称呼您？', '神秘访客');
+    setUserName(username || '神秘访客');
+  }, []);
+
   return (
     <div>
       <div className="pb-[200px] pt-4 md:pt-10">
@@ -59,6 +65,7 @@ export default function Page() {
           </>
         ) : (
           <EmptyScreen
+            username={userName}
             submitMessage={async message => {
               // Add user message UI
               setMessages(currentMessages => [
