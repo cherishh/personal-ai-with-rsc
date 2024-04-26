@@ -12,7 +12,7 @@ import { Providers } from '@/components/providers';
 const meta = {
   title: 'RSC 3000',
   description:
-    'Demo of an interactive financial assistant built using Next.js and Vercel AI SDK.',
+    'Demo of an AI personal assistant.',
 };
 export const metadata: Metadata = {
   ...meta,

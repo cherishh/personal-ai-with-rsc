@@ -1,9 +1,10 @@
 
-export function Event({time, headline, description}) {
+export function Event({date, time, headline, description}) {
 
   return (
     <div>
-      {time[0]}, {time[1]} - {headline} - {description}
+      <div>{date} - {time[0]}, {time[1]}</div>
+      <div>{headline} - {description}</div>
     </div>
   )
 }

@@ -20,7 +20,7 @@ import {
   formatNumber,
   runOpenAICompletion,
 } from '@/lib/utils';
-import { z } from 'zod';
+import { date, z } from 'zod';
 import { HttpsProxyAgent } from 'https-proxy-agent';
 import { StockSkeleton } from '@/components/llm-stocks/stock-skeleton';
 import { EventsSkeleton } from '@/components/llm-stocks/events-skeleton';
@@ -28,6 +28,7 @@ import { StocksSkeleton } from '@/components/llm-stocks/stocks-skeleton';
 import { EventsSkeleton as CalendarEventsSkeleton } from '@/components/llm-calendar/events-skeleton';
 import { Events as CalendarEvents } from '@/components/llm-calendar';
 import { Event } from '@/components/llm-calendar/event';
+import { Posts } from '@/components/llm-social';
 
 
 let isProxy = process.env.NODE_ENV === 'development';
@@ -56,7 +57,7 @@ async function confirmPurchase(symbol: string, price: number, amount: number) {
 
   runAsyncFnWithoutBlocking(async () => {
     // You can update the UI at any point.
-    await sleep(1000);
+    await sleep(2000);
 
     purchasing.update(
       <div className="inline-flex items-start gap-1 md:items-center">
@@ -67,7 +68,7 @@ async function confirmPurchase(symbol: string, price: number, amount: number) {
       </div>,
     );
 
-    await sleep(1000);
+    await sleep(2000);
 
     purchasing.done(
       <div>
@@ -128,7 +129,7 @@ async function submitUserMessage(content: string) {
       {
         role: 'system',
         content: `\
-You are a smart, intelligent, funny and friendly AI assistant, dedicated to server Zhongxi, your one and only user.
+You are a smart, intelligent, funny and friendly AI assistant, dedicated to server Zhongxi, your one and only user, who's also your creator.
 As of toning, Most of the time, you can mimic Chandler Bing from Friends, unless you and the user are discussing some serious topics.
 The user may ask you about 1)his stock portfolio, 2)his calendar, 3)his social media, or 4)any other general questions. And you'll be given the access to the necessary APIs to help him.
 
@@ -156,14 +157,19 @@ If the user asks you to remove an event, call \`remove_event\` to remove the eve
 If the user wants to change an event, call \`modify_event\` to change the event to the new date & show the resulting calendar UI to the user for confirmation.
 
 # Social Media
-If the user asks you what's new on his social media, call \`fetch_social_media\` to get posts in the user's feed, and summarize what's new.
-If the user asks you to post something, call \`post_social_media\` to post the content to the user's feed.
+If the user asks you what's new on his social media such as Weibo(微博), call \`fetch_posts\` to get posts in the user's feed.
+If the user asks you to post something, call \`post_x\` to post contents on the user's social media.
 
 The user's primary language is Chinese. So respond in Chinese.
 The user may also just wanna chat with you, so feel free to chat with him.
 
 Other useful information:
 current date: ${new Date().toISOString().slice(0, 10)}
+- The user
+Zhongxi, 32 years old male, living in Shanghai, China, working as a software engineer.
+He has strong curiosity, interested in all kinds of knowledge. He's especially keen on AI and technology.
+He'd appreciate humor - all kinds of humor, including ordinary dad jokes, dark jokes, sarcasm, puns, etc.
+He is a fan of the TV series Friends.
 `,
       },
       ...aiState.get().map((info: any) => ({
@@ -175,8 +181,7 @@ current date: ${new Date().toISOString().slice(0, 10)}
     functions: [
       {
         name: 'get_calendar_events',
-        description:
-          'List user\'s events between user highlighted dates that describe stock activity.',
+        description: "List user's events between user highlighted dates that describe stock activity.",
         parameters: z.object({
           startDate: z.string().describe('The start date of the event'),
           endDate: z.string().describe('The end date of the event'),
@@ -184,41 +189,67 @@ current date: ${new Date().toISOString().slice(0, 10)}
       },
       {
         name: 'add_event',
-        description:
-          'Add an event to the user calendar. Use this to add an event to the user calendar.',
+        description: 'Add an event to the user calendar. Use this to add an event to the user calendar.',
         parameters: z.object({
-          startTime: z
-            .string()
-            .describe('The start time of the event, in ISO-8601 format'),
+          // 后期优化为YYYY-MM-DD格式, 并在组件中处理跨年events
+          date: z.date().describe('The date of the event, in MM-DD format'),
+          startTime: z.string().describe('The start time of the event, in ISO-8601 format'),
           endTime: z
             .string()
-            .describe('The end time of the event, in ISO-8601 format. If not mentioned, default to 1 hour after the start time.'),
+            .describe(
+              'The end time of the event, in ISO-8601 format. If not mentioned, default to 1 hour after the start time.'
+            ),
           headline: z.string().describe('The headline of the event'),
-          description: z.string().describe('The description of the event. Can be optional if the user did not specify it.'),
+          description: z
+            .string()
+            .describe('The description of the event. Can be optional if the user did not specify it.'),
         }),
       },
       {
         name: 'remove_event',
-        description:
-          'Remove an event from the user calendar. Use this to remove an event from the user calendar.',
+        description: 'Remove an event from the user calendar. Use this to remove an event from the user calendar.',
         parameters: z.object({
           id: z.string().describe('The ID of the event to remove'),
         }),
       },
       {
         name: 'modify_event',
-        description:
-          'Modify an event in the user calendar. Use this to modify an event in the user calendar.',
+        description: 'Just tell the user this function is under development and will be coming soon.',
         parameters: z.object({
-          id: z.string().describe('The ID of the event to modify'),
-          newDate: z
-            .string()
-            .describe('The new date of the event, in ISO-8601 format')
-            .optional(),
-          newHeadline: z
-            .string()
-            .describe('The new headline of the event')
-            .optional()
+          additionalInfo: z.string().optional(),
+        }),
+        // description:
+        //   'Modify an event in the user calendar. Use this to modify an event in the user calendar.',
+        // parameters: z.object({
+        //   id: z.string().describe('The ID of the event to modify'),
+        //   newDate: z
+        //     .string()
+        //     .describe('The new date of the event, in ISO-8601 format')
+        //     .optional(),
+        //   newHeadline: z
+        //     .string()
+        //     .describe('The new headline of the event')
+        //     .optional()
+        // }),
+      },
+      {
+        name: 'fetch_posts',
+        description:
+          "Get the latest posts from the user's social media feed. Use this to show the user the latest posts.",
+        parameters: z.object({
+          posts: z.array(
+            z.object({
+              id: z.string().describe('The ID of the post'),
+              content: z.string().describe('The content of the post'),
+            })
+          ),
+        }),
+      },
+      {
+        name: 'post_x',
+        description: 'Use this to post a message on the user social media.',
+        parameters: z.object({
+          postContent: z.string().describe('The content of the post'),
         }),
       },
       {
@@ -226,11 +257,7 @@ current date: ${new Date().toISOString().slice(0, 10)}
         description:
           'Get the current stock price of a given stock or currency. Use this to show the price to the user.',
         parameters: z.object({
-          symbol: z
-            .string()
-            .describe(
-              'The name or symbol of the stock or currency. e.g. DOGE/AAPL/USD.',
-            ),
+          symbol: z.string().describe('The name or symbol of the stock or currency. e.g. DOGE/AAPL/USD.'),
           price: z.number().describe('The price of the stock.'),
           delta: z.number().describe('The change in price of the stock'),
         }),
@@ -240,16 +267,12 @@ current date: ${new Date().toISOString().slice(0, 10)}
         description:
           'Show price and the UI to purchase a stock or currency. Use this if the user wants to purchase a stock or currency.',
         parameters: z.object({
-          symbol: z
-            .string()
-            .describe(
-              'The name or symbol of the stock or currency. e.g. DOGE/AAPL/USD.',
-            ),
+          symbol: z.string().describe('The name or symbol of the stock or currency. e.g. DOGE/AAPL/USD.'),
           price: z.number().describe('The price of the stock.'),
           numberOfShares: z
             .number()
             .describe(
-              'The **number of shares** for a stock or currency to purchase. Can be optional if the user did not specify it.',
+              'The **number of shares** for a stock or currency to purchase. Can be optional if the user did not specify it.'
             ),
         }),
       },
@@ -262,23 +285,20 @@ current date: ${new Date().toISOString().slice(0, 10)}
               symbol: z.string().describe('The symbol of the stock'),
               price: z.number().describe('The price of the stock'),
               delta: z.number().describe('The change in price of the stock'),
-            }),
+            })
           ),
         }),
       },
       {
         name: 'get_events',
-        description:
-          'List funny imaginary events between user highlighted dates that describe stock activity.',
+        description: 'List funny imaginary events between user highlighted dates that describe stock activity.',
         parameters: z.object({
           events: z.array(
             z.object({
-              date: z
-                .string()
-                .describe('The date of the event, in ISO-8601 format'),
+              date: z.string().describe('The date of the event, in ISO-8601 format'),
               headline: z.string().describe('The headline of the event'),
               description: z.string().describe('The description of the event'),
-            }),
+            })
           ),
         }),
       },
@@ -302,20 +322,22 @@ current date: ${new Date().toISOString().slice(0, 10)}
     );
 
     // Simulate fetching events.
-    await sleep(1000);
+    await sleep(2000);
 
     reply.done(
       <BotCard>
         <CalendarEvents events={[{
           id: '1',
-          date: '2022-01-01',
-          headline: 'New Year\'s Day',
-          description: 'Celebrate the new year with your friends and family.',
+          date: '2024-05-01',
+          time: ['09:30', '10:30'],
+          headline: '去日本航班',
+          description: '护照！护照！护照！',
         }, {
           id: '2',
-          date: '2022-02-14',
-          headline: 'Valentine\'s Day',
-          description: 'Celebrate love with your significant other.',
+          date: '2024-05-14',
+          time: ['10:00', '11:00'],
+          headline: '导出sleep cycle数据',
+          description: '取消订阅',
         }]} />
         <div>{startDate}, {endDate}</div>
       </BotCard>,
@@ -331,18 +353,18 @@ current date: ${new Date().toISOString().slice(0, 10)}
     ]);
   });
 
-  completion.onFunctionCall('add_event', async ({ startTime, endTime, headline, description }) => {
+  completion.onFunctionCall('add_event', async ({ date, startTime, endTime, headline, description }) => {
     reply.update(
-      <BotCard>
+      <BotMessage>
         <div>creating event...</div>
-      </BotCard>,
+      </BotMessage>,
     );
 
-    await sleep(1000);
+    await sleep(2000);
 
     reply.done(
       <BotCard>
-        <Event time={[startTime, endTime]} headline={headline} description={description} />
+        <Event date={date} time={[startTime, endTime]} headline={headline} description={description} />
       </BotCard>,
     );
 
@@ -351,10 +373,110 @@ current date: ${new Date().toISOString().slice(0, 10)}
       {
         role: 'function',
         name: 'add_event',
-        content: `[Added event at ${startTime}: ${headline}]`,
+        content: `[Added event on ${date} at ${startTime}: ${headline}]`,
       },
     ]);
   });
+
+  completion.onFunctionCall('fetch_posts', async ({ }) => {
+    reply.update(
+      <BotMessage>
+        <div>获取微博中...</div>
+      </BotMessage>,
+    );
+
+    await sleep(2000);
+    // todo get posts
+    const posts = [
+      {
+        id: '1',
+        author: 'TK',
+        content: `如果字节跳动坚持不卖 TikTok，即便真被美国禁了，至少字节跳动还有一个没有美国（当然也没有中国）的 TikTok。
+
+      如果字节跳动把 TikTok 卖了，那字节跳动就没有 TikTok 了。卖的钱也做不出另一个 TikTok 级别的产品。
+      
+      这还不是最糟糕的。如果字节跳动把 TikTok 卖了，可能抖音也——就不说没了吧，肯定会比较惨。
+      
+      所以接下来一年的斗争策略应该如何，其实是明牌。`,
+      },
+      { id: '2', author: '张三', content: '为什么在重庆这些天每天都感觉好累[二哈]' },
+      {
+        id: '3',
+        author: '喵喵',
+        content: `事实上，男女之间财产风控的极致方案从来不是不领证，而是门当户对。
+
+      哪怕不领证，只要存在财富落差，依旧有被爆金币的风险。
+      
+      只有门当户对才是最安全的。
+      
+      而且，有了这个门当户对的编制内妻子，还有办法合法索回对外赠与情人的各种财产。
+      
+      只不过，门当户对的老婆未必会惯着你，由得你在外胡来。`,
+      },
+    ];
+
+    reply.update(
+      <BotMessage>
+        <div>{spinner} 获取完成，总结中</div>
+      </BotMessage>,
+    );
+
+    const response = await openai.chat.completions.create({
+      model: 'gpt-4-turbo',
+      stream: false,
+      max_tokens: 2048,
+      messages: [
+        {
+          role: 'system',
+          content: `你是一个文本总结专家。我会给你一些社交网络上的posts，你需要帮我进行总结。对于其中看上去比较重要的，请逐条总结，告诉我哪位博主说了什么事。 下面是你需要总结的posts: ${JSON.stringify(posts)}。请注意用用户的语言回复。如用户使用中文，则你也用中文回复；同理如果用户使用英文，则你也应该使用英文回复。`,
+        },
+      ],
+    });
+
+    console.log(response.choices[0].message, 'response-----------------');
+
+    reply.done(
+      <BotMessage>
+        <div className='whitespace-pre-line '>{response.choices[0].message.content}</div>
+      </BotMessage>,
+    );
+
+
+
+    aiState.done([
+      ...aiState.get(),
+      {
+        role: 'function',
+        name: 'fetch_posts',
+        content: `[Fetched social media posts on user's feed: [${JSON.stringify(posts)}]. \n then, summarized them.]`,
+      },
+    ]);
+  });
+
+  completion.onFunctionCall('post_x', async ({ postContent }) => {
+    reply.update(
+      <BotMessage>
+        <div>posting...</div>
+      </BotMessage>,
+    );
+
+    await sleep(2000);
+
+    reply.done(
+      <BotMessage>
+        <div>posted: {postContent}</div>
+      </BotMessage>,
+    );
+
+    aiState.done([
+      ...aiState.get(),
+      {
+        role: 'function',
+        name: 'post_x',
+        content: `[Posted: ${postContent}]`,
+      },
+    ]);
+  })
 
   completion.onFunctionCall('list_stocks', async ({ stocks }) => {
     reply.update(
@@ -363,7 +485,7 @@ current date: ${new Date().toISOString().slice(0, 10)}
       </BotCard>,
     );
 
-    await sleep(1000);
+    await sleep(2000);
 
     reply.done(
       <BotCard>
@@ -388,7 +510,7 @@ current date: ${new Date().toISOString().slice(0, 10)}
       </BotCard>,
     );
 
-    await sleep(1000);
+    await sleep(2000);
 
     reply.done(
       <BotCard>
@@ -415,7 +537,7 @@ current date: ${new Date().toISOString().slice(0, 10)}
         </BotCard>,
       );
 
-      await sleep(1000);
+      await sleep(2000);
 
       reply.done(
         <BotCard>

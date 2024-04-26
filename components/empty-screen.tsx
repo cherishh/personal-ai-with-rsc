@@ -16,8 +16,8 @@ const exampleMessages = [
     message: "帮我查看明天的日程",
   },
   {
-    heading: "微博热搜上有什么新闻？",
-    message: "微博热搜上有什么新闻？",
+    heading: "我的微博上有什么新鲜事？",
+    message: "我的微博上有什么新鲜事？",
   }
 ];
 
@@ -34,7 +34,7 @@ export function EmptyScreen({
         <h1 className='mb-2 text-lg font-semibold'>Hi👋 {username}！</h1>
         <p className='mb-2 leading-normal text-muted-foreground'>
           我是<strong className='italic'> 你 </strong>
-          的智能个人助理。不同于常见的聊天机器人，我特别设计为仅为你服务。我知道你的兴趣和需求，可以直接帮你处理各种事务。
+          的智能个人助理。不同于常见的聊天机器人，我特别设计为仅为你服务，我知道你的兴趣和需求，并可以直接帮你处理各种事务。
         </p>
         <p className='mb-2 leading-normal text-muted-foreground'>
           比如我可以直接帮你购买股票，为你管理日程，或者帮你看看社交网络上你的朋友们都有什么新鲜事。你可以尝试问我一些问题，或者直接点击下面的示例按钮。
@@ -57,10 +57,10 @@ export function EmptyScreen({
         </div>
       </div>
       <p className='leading-normal text-muted-foreground text-[0.8rem] text-center max-w-full ml-auto mr-auto'>
-        请注意：这是一个demo，旨在演示AI除了对话问答(且仅能以
+        这是一个demo，旨在演示AI除了文字问答(且通常仅能以
         <code className='border border-solid rounded-sm px-1 mx-1'>markdown</code>
-        格式回复)之外，还可以帮你做什么。当前所有数据均为mock，但如果有人感兴趣也能很容易换成真实个人数据。如果你有任何问题或建议，请随时
-        <a className='underline' href='https://zhongxi.app'>
+        格式回复)之外，还可以帮你做什么。当前所有数据均为mock，但只要稍加改造很容易换成真实数据。如果你有任何问题或建议，请随时
+        <a className='underline px-1' href='https://zhongxi.app'>
           联系我
         </a>
         。
