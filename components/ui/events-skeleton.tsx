@@ -23,7 +23,7 @@ export function EventsSkeleton() {
   )
 }
 
-function CalendarIcon(props) {
+function CalendarIcon(props: any) {
   return (
     <svg
       {...props}

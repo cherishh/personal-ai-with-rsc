@@ -1,5 +1,5 @@
 
-export function Event({date, time, headline, description}) {
+export function Event({date, time, headline, description}: {date: string, time: string[], headline: string, description: string}) {
 
   return (
     <div>

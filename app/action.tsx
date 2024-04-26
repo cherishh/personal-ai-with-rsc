@@ -192,7 +192,7 @@ He is a fan of the TV series Friends.
         description: 'Add an event to the user calendar. Use this to add an event to the user calendar.',
         parameters: z.object({
           // 后期优化为YYYY-MM-DD格式, 并在组件中处理跨年events
-          date: z.date().describe('The date of the event, in MM-DD format'),
+          date: z.string().describe('The date of the event, in MM-DD format'),
           startTime: z.string().describe('The start time of the event, in ISO-8601 format'),
           endTime: z
             .string()

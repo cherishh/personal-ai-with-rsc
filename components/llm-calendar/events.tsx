@@ -1,5 +1,5 @@
 
-export function Events({events}) {
+export function Events({events}: {events: any}) {
 
   return (
     <div>

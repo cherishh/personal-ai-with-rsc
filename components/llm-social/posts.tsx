@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useCompletion } from 'ai/react';
 
-export function PostList({posts}) {
+export function PostList({posts}: {posts: any[]}) {
 
   // const { completion } = useCompletion({
   //   api: '/api/social/summary',
