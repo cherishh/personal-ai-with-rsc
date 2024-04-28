@@ -21,6 +21,7 @@ import {
   runOpenAICompletion,
 } from '@/lib/utils';
 import { date, z } from 'zod';
+import { format, compareAsc } from "date-fns";
 import { HttpsProxyAgent } from 'https-proxy-agent';
 import { StockSkeleton } from '@/components/llm-stocks/stock-skeleton';
 import { EventsSkeleton } from '@/components/llm-stocks/events-skeleton';
@@ -48,7 +49,7 @@ async function confirmPurchase(symbol: string, price: number, amount: number) {
     <div className="inline-flex items-start gap-1 md:items-center">
       {spinner}
       <p className="mb-2">
-        Purchasing {amount} ${symbol}...
+        购买 {amount} 股 ${symbol}...
       </p>
     </div>,
   );
@@ -63,7 +64,7 @@ async function confirmPurchase(symbol: string, price: number, amount: number) {
       <div className="inline-flex items-start gap-1 md:items-center">
         {spinner}
         <p className="mb-2">
-          Purchasing {amount} ${symbol}... working on it...
+          购买 {amount} 股 ${symbol}... 仍在进行中...
         </p>
       </div>,
     );
@@ -73,15 +74,14 @@ async function confirmPurchase(symbol: string, price: number, amount: number) {
     purchasing.done(
       <div>
         <p className="mb-2">
-          You have successfully purchased {amount} ${symbol}. Total cost:{' '}
-          {formatNumber(amount * price)}
+          恭喜，已买入 {amount} 股 {symbol}.
         </p>
       </div>,
     );
 
     systemMessage.done(
       <SystemMessage>
-        You have purchased {amount} shares of {symbol} at ${price}. Total cost ={' '}
+        已成功买入 {amount} 股 {symbol}, 均价 ${price}. 总共花费 ={' '}
         {formatNumber(amount * price)}.
       </SystemMessage>,
     );
@@ -323,23 +323,43 @@ He is a fan of the TV series Friends.
 
     // Simulate fetching events.
     await sleep(2000);
+    const events = [{
+      id: '1',
+      date: '2024-05-02',
+      time: ['09:30', '10:30'],
+      headline: '回家的航班',
+      description: '',
+      type: 'application'
+    }, {
+      id: '2',
+      date: '2024-05-05',
+      time: ['20:00', '21:00'],
+      headline: '跟朋友吃饭',
+      description: '北京路海底捞',
+      type: 'personal'
+    }, {
+      id: '3',
+      date: '2024-05-10',
+      time: ['14:00', '15:00'],
+      headline: '开会 with 陈老师',
+      description: '讨论项目进展',
+      type: 'work'
+    }, {
+      id: '4',
+      date: '2024-05-14',
+      time: ['10:00', '11:00'],
+      headline: '导出sleep cycle数据',
+      description: '取消订阅',
+      type: 'personal'
+    }];
+
+    const transformDate = (date: string) => new Date(date);
+    const filteredEvents = events.filter(event => transformDate(event.date) >= transformDate(startDate) && transformDate(event.date) <= transformDate(endDate));
 
     reply.done(
       <BotCard>
-        <CalendarEvents events={[{
-          id: '1',
-          date: '2024-05-01',
-          time: ['09:30', '10:30'],
-          headline: '去日本航班',
-          description: '护照！护照！护照！',
-        }, {
-          id: '2',
-          date: '2024-05-14',
-          time: ['10:00', '11:00'],
-          headline: '导出sleep cycle数据',
-          description: '取消订阅',
-        }]} />
-        <div>{startDate}, {endDate}</div>
+        <CalendarEvents events={filteredEvents} />
+        <SystemMessage><div>{startDate}, {endDate}</div></SystemMessage>
       </BotCard>,
     );
 
@@ -365,6 +385,7 @@ He is a fan of the TV series Friends.
     reply.done(
       <BotCard>
         <Event date={date} time={[startTime, endTime]} headline={headline} description={description} />
+        <SystemMessage><div>已添加日程：{headline}</div></SystemMessage>
       </BotCard>,
     );
 
@@ -373,7 +394,7 @@ He is a fan of the TV series Friends.
       {
         role: 'function',
         name: 'add_event',
-        content: `[Added event on ${date} at ${startTime}: ${headline}]`,
+        content: `[Added event: ${headline} on ${date} from ${startTime} to ${endTime}]`,
       },
     ]);
   });
@@ -399,10 +420,10 @@ He is a fan of the TV series Friends.
       
       所以接下来一年的斗争策略应该如何，其实是明牌。`,
       },
-      { id: '2', author: '张三', content: '为什么在重庆这些天每天都感觉好累[二哈]' },
+      { id: '2', author: '亚鹏', content: '为什么在重庆这些天每天都感觉好累[二哈]' },
       {
         id: '3',
-        author: '喵喵',
+        author: '慕有枝',
         content: `事实上，男女之间财产风控的极致方案从来不是不领证，而是门当户对。
 
       哪怕不领证，只要存在财富落差，依旧有被爆金币的风险。
@@ -417,7 +438,7 @@ He is a fan of the TV series Friends.
 
     reply.update(
       <BotMessage>
-        <div>{spinner} 获取完成，总结中</div>
+        <div>获取完成，总结中...</div>
       </BotMessage>,
     );
 

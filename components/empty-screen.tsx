@@ -9,7 +9,7 @@ const exampleMessages = [
   },
   {
     heading: "帮我买进100股微软(MSFT)",
-    message: "帮我买进100股招商银行(MSFT)",
+    message: "帮我买进100股微软(MSFT)",
   },
   {
     heading: "帮我查看明天的日程",
