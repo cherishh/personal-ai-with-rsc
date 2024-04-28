@@ -5,15 +5,15 @@ import { GenerateItineraryAI } from './generate-itinerary';
 import '../globals.css';
 
 const meta = {
-  title: 'AI RSC Demo',
+  title: 'Baby Jarvis',
   description:
-    'Demo of an AI personal assistant.',
+    'Demo of a real AI personal assistant.',
 };
 export const metadata: Metadata = {
   ...meta,
   title: {
-    default: 'AI RSC Demo',
-    template: `%s - AI RSC Demo`,
+    default: 'Baby Jarvis',
+    template: `%s - Baby Jarvis, the AI personal assistant.`,
   },
   icons: {
     icon: '/favicon.ico',

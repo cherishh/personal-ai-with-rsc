@@ -10,15 +10,15 @@ import { Header } from '@/components/header';
 import { Providers } from '@/components/providers';
 
 const meta = {
-  title: 'RSC 3000',
+  title: 'Baby Jarvis by Zhongxi',
   description:
-    'Demo of an AI personal assistant.',
+    'Demo of a real AI personal assistant.',
 };
 export const metadata: Metadata = {
   ...meta,
   title: {
-    default: 'RSC 3000',
-    template: `%s - RSC 3000`,
+    default: 'Baby Jarvis by Zhongxi',
+    template: `%s - Baby Jarvis, a real AI personal assistant`,
   },
 };
 

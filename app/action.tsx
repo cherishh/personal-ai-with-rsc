@@ -385,7 +385,7 @@ He is a fan of the TV series Friends.
     reply.done(
       <BotCard>
         <Event date={date} time={[startTime, endTime]} headline={headline} description={description} />
-        <SystemMessage><div>已添加日程：{headline}</div></SystemMessage>
+        <SystemMessage><div>添加日程：{headline}</div></SystemMessage>
       </BotCard>,
     );
 
