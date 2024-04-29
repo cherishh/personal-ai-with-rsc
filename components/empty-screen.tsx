@@ -8,6 +8,10 @@ const exampleMessages = [
     message: "帮我查看今天的日程",
   },
   {
+    heading: "约一个明天下午 4 点的会",
+    message: "约一个明天下午 4 点的会",
+  },
+  {
     heading: "苹果公司(AAPL)的股价怎么样?",
     message: "苹果公司(AAPL)的股价怎么样?",
   },

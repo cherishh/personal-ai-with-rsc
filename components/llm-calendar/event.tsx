@@ -96,13 +96,11 @@ export function Event({
     // 计算时间轴范围
     setHourRange(add1hourMore(generateHourlyTimeRange(time)));
     console.log(eventStart, eventEnd, eventTotalMinutes, isLgBlock, 'event-----------------');
+    console.log(time, 'time-----------------');
   }, [time]);
 
   return (
     <div className='w-5/6'>
-      <div className=' mb-10'>
-        {time[0]} - {time[1]}
-      </div>
       <div className='flex flex-row gap-2' style={{ animation: '0.5s ease 0s 1 normal forwards running fadein' }}>
         <div className='flex flex-col gap-1 justify-between relative -top-2'>
           {hourRange.map((hour, idx) => (
