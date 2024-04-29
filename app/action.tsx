@@ -404,7 +404,7 @@ He is a fan of the TV series Friends.
   completion.onFunctionCall('add_event', async ({ startTime, endTime, headline, description }) => {
     reply.update(
       <BotMessage>
-        <div>creating event...{startTime} {endTime}</div>
+        <div className='text-sm'>创建日程中...</div>
       </BotMessage>
     );
 
@@ -432,7 +432,7 @@ He is a fan of the TV series Friends.
   completion.onFunctionCall('remove_event', async ({ id }) => {
     reply.update(
       <BotMessage>
-        <div>removing event...</div>
+        <div className='text-sm'>移除日程中...</div>
       </BotMessage>
     );
 
@@ -440,7 +440,7 @@ He is a fan of the TV series Friends.
 
     reply.done(
       <BotMessage>
-        <div>event removed: {id}</div>
+        <div className='text-sm'>移除日程: {id}</div>
       </BotMessage>
     );
 
@@ -530,7 +530,7 @@ He is a fan of the TV series Friends.
   completion.onFunctionCall('post_x', async ({ postContent }) => {
     reply.update(
       <BotMessage>
-        <div>posting...</div>
+        <div className='text-sm'>发布中...</div>
       </BotMessage>
     );
 

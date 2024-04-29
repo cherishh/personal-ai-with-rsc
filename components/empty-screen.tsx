@@ -4,16 +4,16 @@ import { IconArrowRight } from '@/components/ui/icons';
 
 const exampleMessages = [
   {
+    heading: "帮我查看今天的日程",
+    message: "帮我查看今天的日程",
+  },
+  {
     heading: "苹果公司(AAPL)的股价怎么样?",
     message: "苹果公司(AAPL)的股价怎么样?",
   },
   {
     heading: "帮我买进100股微软(MSFT)",
     message: "帮我买进100股微软(MSFT)",
-  },
-  {
-    heading: "帮我查看明天的日程",
-    message: "帮我查看明天的日程",
   },
   {
     heading: "我的微博上有什么新鲜事？",
