@@ -148,3 +148,7 @@ export function getStockPrice(name: string) {
   }
   return total / 100;
 }
+
+export function getId() {
+  return Math.random().toString(36).substring(7);
+}

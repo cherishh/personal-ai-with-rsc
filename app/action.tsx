@@ -3,25 +3,11 @@ import 'server-only';
 import { createAI, createStreamableUI, getMutableAIState } from 'ai/rsc';
 import OpenAI from 'openai';
 
-import {
-  spinner,
-  BotCard,
-  BotMessage,
-  SystemMessage,
-  Stock,
-  Purchase,
-  Stocks,
-  Events,
-} from '@/components/llm-stocks';
+import { spinner, BotCard, BotMessage, SystemMessage, Stock, Purchase, Stocks, Events } from '@/components/llm-stocks';
 
-import {
-  runAsyncFnWithoutBlocking,
-  sleep,
-  formatNumber,
-  runOpenAICompletion,
-} from '@/lib/utils';
+import { runAsyncFnWithoutBlocking, sleep, formatNumber, runOpenAICompletion } from '@/lib/utils';
 import { date, z } from 'zod';
-import { format, compareAsc } from "date-fns";
+import { getId } from '@/lib/utils';
 import { HttpsProxyAgent } from 'https-proxy-agent';
 import { StockSkeleton } from '@/components/llm-stocks/stock-skeleton';
 import { EventsSkeleton } from '@/components/llm-stocks/events-skeleton';
@@ -29,7 +15,7 @@ import { StocksSkeleton } from '@/components/llm-stocks/stocks-skeleton';
 import { EventsSkeleton as CalendarEventsSkeleton } from '@/components/llm-calendar/events-skeleton';
 import { Events as CalendarEvents } from '@/components/llm-calendar';
 import { Event } from '@/components/llm-calendar/event';
-import { Posts } from '@/components/llm-social';
+import type { IEvent } from "@/types/llm-calendar";
 
 
 let isProxy = process.env.NODE_ENV === 'development';
@@ -46,12 +32,12 @@ async function confirmPurchase(symbol: string, price: number, amount: number) {
   const aiState = getMutableAIState<typeof AI>();
 
   const purchasing = createStreamableUI(
-    <div className="inline-flex items-start gap-1 md:items-center">
+    <div className='inline-flex items-start gap-1 md:items-center'>
       {spinner}
-      <p className="mb-2">
+      <p className='mb-2'>
         购买 {amount} 股 ${symbol}...
       </p>
-    </div>,
+    </div>
   );
 
   const systemMessage = createStreamableUI(null);
@@ -61,38 +47,35 @@ async function confirmPurchase(symbol: string, price: number, amount: number) {
     await sleep(2000);
 
     purchasing.update(
-      <div className="inline-flex items-start gap-1 md:items-center">
+      <div className='inline-flex items-start gap-1 md:items-center'>
         {spinner}
-        <p className="mb-2">
+        <p className='mb-2'>
           购买 {amount} 股 ${symbol}... 仍在进行中...
         </p>
-      </div>,
+      </div>
     );
 
     await sleep(2000);
 
     purchasing.done(
       <div>
-        <p className="mb-2">
+        <p className='mb-2'>
           恭喜，已买入 {amount} 股 {symbol}.
         </p>
-      </div>,
+      </div>
     );
 
     systemMessage.done(
       <SystemMessage>
-        已成功买入 {amount} 股 {symbol}, 均价 ${price}. 总共花费 ={' '}
-        {formatNumber(amount * price)}.
-      </SystemMessage>,
+        已成功买入 {amount} 股 {symbol}, 均价 ${price}. 总共花费 = {formatNumber(amount * price)}.
+      </SystemMessage>
     );
 
     aiState.done([
       ...aiState.get(),
       {
         role: 'system',
-        content: `[User has purchased ${amount} shares of ${symbol} at ${price}. Total cost = ${
-          amount * price
-        }]`,
+        content: `[User has purchased ${amount} shares of ${symbol} at ${price}. Total cost = ${amount * price}]`,
       },
     ]);
   });
@@ -118,9 +101,7 @@ async function submitUserMessage(content: string) {
     },
   ]);
 
-  const reply = createStreamableUI(
-    <BotMessage className="items-center">{spinner}</BotMessage>,
-  );
+  const reply = createStreamableUI(<BotMessage className='items-center'>{spinner}</BotMessage>);
 
   const completion = runOpenAICompletion(openai, {
     model: 'gpt-4-turbo',
@@ -191,8 +172,6 @@ He is a fan of the TV series Friends.
         name: 'add_event',
         description: 'Add an event to the user calendar. Use this to add an event to the user calendar.',
         parameters: z.object({
-          // 后期优化为YYYY-MM-DD格式, 并在组件中处理跨年events
-          date: z.string().describe('The date of the event, in MM-DD format'),
           startTime: z.string().describe('The start time of the event, in ISO-8601 format'),
           endTime: z
             .string()
@@ -318,49 +297,98 @@ He is a fan of the TV series Friends.
     reply.update(
       <BotCard>
         <CalendarEventsSkeleton />
-      </BotCard>,
+      </BotCard>
     );
 
     // Simulate fetching events.
     await sleep(2000);
-    const events = [{
-      id: '1',
-      date: '2024-05-02',
-      time: ['09:30', '10:30'],
-      headline: '回家的航班',
-      description: '',
-      type: 'application'
-    }, {
-      id: '2',
-      date: '2024-05-05',
-      time: ['20:00', '21:00'],
-      headline: '跟朋友吃饭',
-      description: '北京路海底捞',
-      type: 'personal'
-    }, {
-      id: '3',
-      date: '2024-05-10',
-      time: ['14:00', '15:00'],
-      headline: '开会 with 陈老师',
-      description: '讨论项目进展',
+    const events: IEvent[] = [{
+      id: getId(),
+      date: '2024-04-29',
+      time: ['2024-04-29T10:00:00', '2024-04-29T11:00:00'],
+      headline: '吃早餐',
+      description: '使劲加鸡蛋',
       type: 'work'
     }, {
-      id: '4',
-      date: '2024-05-14',
-      time: ['10:00', '11:00'],
-      headline: '导出sleep cycle数据',
-      description: '取消订阅',
+      id: getId(),
+      date: '2024-04-29',
+      time: ['2024-04-29T14:00:00', '2024-04-29T16:00:00'],
+      headline: '试用微软的tts模型',
+      description: 'Try Microsoft TTS model',
       type: 'personal'
+    }, {
+      id: getId(),
+      date: '2024-04-29',
+      time: ['2024-04-29T16:30:00', '2024-04-29T16:45:00'],
+      headline: '与好朋友吴彦祖先生聊聊他的新剧',
+      description: 'Netflix and chill with Daniel Wu',
+      type: 'family'
+    }, {
+      id: getId(),
+      date: '2024-05-02',
+      time: ['2024-05-02T10:30:00', '2024-05-02T13:45:00'],
+      headline: '回家航班',
+      description: '回家航班',
+      type: 'personal'
+    }, {
+      id: getId(),
+      date: '2024-05-04',
+      time: ['2024-05-04T10:00:00', '2024-05-04T10:15:00'],
+      headline: '给爸换手机',
+      description: '看看是plus 还是 pro',
+      type: 'family'
+    }, {
+      id: getId(),
+      date: '2024-05-05',
+      time: ['2024-05-04T19:30:00', '2024-05-04T20:30:00'],
+      headline: '土豆他们聚餐',
+      description: '土豆他们聚餐',
+      type: 'personal'
+    }, {
+      id: getId(),
+      date: '2024-05-06',
+      time: ['2024-05-06T10:30:00', '2024-05-06T10:45:00'],
+      headline: '点奶茶',
+      description: '云晧，坚哥',
+      type: 'work'
+    }, {
+      id: getId(),
+      date: '2024-05-10',
+      time: ['2024-05-10T20:30:00', '2024-05-10T23:27:00'],
+      headline: '上海航班',
+      description: '上海航班',
+      type: 'personal'
+    }, {
+      id: getId(),
+      date: '2024-06-05',
+      time: ['2024-06-05T20:30:00', '2024-06-05T23:27:00'],
+      headline: 'date',
+      description: '在the bunker',
+      type: 'personal'
+    }, {
+      id: getId(),
+      date: '2024-09-10',
+      time: ['2024-09-10T10:30:00', '2024-09-10T12:27:00'],
+      headline: '硬编',
+      description: '看电影吧',
+      type: 'work'
     }];
 
     const transformDate = (date: string) => new Date(date);
-    const filteredEvents = events.filter(event => transformDate(event.date) >= transformDate(startDate) && transformDate(event.date) <= transformDate(endDate));
+    const filteredEvents = events.filter(
+      (event) =>
+        transformDate(event.date) >= transformDate(startDate) && transformDate(event.date) <= transformDate(endDate)
+    );
 
     reply.done(
       <BotCard>
         <CalendarEvents events={filteredEvents} />
-        <SystemMessage><div>{startDate}, {endDate}</div></SystemMessage>
-      </BotCard>,
+        <SystemMessage>
+          <div>
+            {startDate}, {endDate}
+          </div>
+        </SystemMessage>
+      </BotCard>
     );
 
     aiState.done([
@@ -373,20 +401,22 @@ He is a fan of the TV series Friends.
     ]);
   });
 
-  completion.onFunctionCall('add_event', async ({ date, startTime, endTime, headline, description }) => {
+  completion.onFunctionCall('add_event', async ({ startTime, endTime, headline, description }) => {
     reply.update(
       <BotMessage>
-        <div>creating event...</div>
-      </BotMessage>,
+        <div>creating event...{startTime} {endTime}</div>
+      </BotMessage>
     );
 
     await sleep(2000);
 
     reply.done(
       <BotCard>
-        <Event date={date} time={[startTime, endTime]} headline={headline} description={description} />
-        <SystemMessage><div>添加日程：{headline}</div></SystemMessage>
-      </BotCard>,
+        <Event time={[startTime, endTime]} headline={headline} description={description} />
+        <SystemMessage>
+          <div>添加日程：{headline}</div>
+        </SystemMessage>
+      </BotCard>
     );
 
     aiState.done([
@@ -399,11 +429,36 @@ He is a fan of the TV series Friends.
     ]);
   });
 
-  completion.onFunctionCall('fetch_posts', async ({ }) => {
+  completion.onFunctionCall('remove_event', async ({ id }) => {
+    reply.update(
+      <BotMessage>
+        <div>removing event...</div>
+      </BotMessage>
+    );
+
+    await sleep(2000);
+
+    reply.done(
+      <BotMessage>
+        <div>event removed: {id}</div>
+      </BotMessage>
+    );
+
+    aiState.done([
+      ...aiState.get(),
+      {
+        role: 'function',
+        name: 'remove_event',
+        content: `[Removed event: ${id}]`,
+      },
+    ]);
+  });
+
+  completion.onFunctionCall('fetch_posts', async ({}) => {
     reply.update(
       <BotMessage>
         <div>获取微博中...</div>
-      </BotMessage>,
+      </BotMessage>
     );
 
     await sleep(2000);
@@ -439,7 +494,7 @@ He is a fan of the TV series Friends.
     reply.update(
       <BotMessage>
         <div>获取完成，总结中...</div>
-      </BotMessage>,
+      </BotMessage>
     );
 
     const response = await openai.chat.completions.create({
@@ -459,10 +514,8 @@ He is a fan of the TV series Friends.
     reply.done(
       <BotMessage>
         <div className='whitespace-pre-line '>{response.choices[0].message.content}</div>
-      </BotMessage>,
+      </BotMessage>
     );
-
-
 
     aiState.done([
       ...aiState.get(),
@@ -478,7 +531,7 @@ He is a fan of the TV series Friends.
     reply.update(
       <BotMessage>
         <div>posting...</div>
-      </BotMessage>,
+      </BotMessage>
     );
 
     await sleep(2000);
@@ -486,7 +539,7 @@ He is a fan of the TV series Friends.
     reply.done(
       <BotMessage>
         <div>posted: {postContent}</div>
-      </BotMessage>,
+      </BotMessage>
     );
 
     aiState.done([
@@ -497,13 +550,13 @@ He is a fan of the TV series Friends.
         content: `[Posted: ${postContent}]`,
       },
     ]);
-  })
+  });
 
   completion.onFunctionCall('list_stocks', async ({ stocks }) => {
     reply.update(
       <BotCard>
         <StocksSkeleton />
-      </BotCard>,
+      </BotCard>
     );
 
     await sleep(2000);
@@ -511,7 +564,7 @@ He is a fan of the TV series Friends.
     reply.done(
       <BotCard>
         <Stocks stocks={stocks} />
-      </BotCard>,
+      </BotCard>
     );
 
     aiState.done([
@@ -528,7 +581,7 @@ He is a fan of the TV series Friends.
     reply.update(
       <BotCard>
         <EventsSkeleton />
-      </BotCard>,
+      </BotCard>
     );
 
     await sleep(2000);
@@ -536,7 +589,7 @@ He is a fan of the TV series Friends.
     reply.done(
       <BotCard>
         <Events events={events} />
-      </BotCard>,
+      </BotCard>
     );
 
     aiState.done([
@@ -549,79 +602,69 @@ He is a fan of the TV series Friends.
     ]);
   });
 
-  completion.onFunctionCall(
-    'show_stock_price',
-    async ({ symbol, price, delta }) => {
-      reply.update(
-        <BotCard>
-          <StockSkeleton />
-        </BotCard>,
-      );
+  completion.onFunctionCall('show_stock_price', async ({ symbol, price, delta }) => {
+    reply.update(
+      <BotCard>
+        <StockSkeleton />
+      </BotCard>
+    );
 
-      await sleep(2000);
+    await sleep(2000);
 
-      reply.done(
-        <BotCard>
-          <Stock name={symbol} price={price} delta={delta} />
-        </BotCard>,
-      );
+    reply.done(
+      <BotCard>
+        <Stock name={symbol} price={price} delta={delta} />
+      </BotCard>
+    );
 
-      aiState.done([
-        ...aiState.get(),
-        {
-          role: 'function',
-          name: 'show_stock_price',
-          content: `[Price of ${symbol} = ${price}]`,
-        },
-      ]);
-    },
-  );
+    aiState.done([
+      ...aiState.get(),
+      {
+        role: 'function',
+        name: 'show_stock_price',
+        content: `[Price of ${symbol} = ${price}]`,
+      },
+    ]);
+  });
 
-  completion.onFunctionCall(
-    'show_stock_purchase_ui',
-    ({ symbol, price, numberOfShares = 100 }) => {
-      if (numberOfShares <= 0 || numberOfShares > 1000) {
-        reply.done(<BotMessage>Invalid amount</BotMessage>);
-        aiState.done([
-          ...aiState.get(),
-          {
-            role: 'function',
-            name: 'show_stock_purchase_ui',
-            content: `[Invalid amount]`,
-          },
-        ]);
-        return;
-      }
-
-      reply.done(
-        <>
-          <BotMessage>
-            Sure!{' '}
-            {typeof numberOfShares === 'number'
-              ? `Click the button below to purchase ${numberOfShares} shares of $${symbol}:`
-              : `How many $${symbol} would you like to purchase?`}
-          </BotMessage>
-          <BotCard showAvatar={false}>
-            <Purchase
-              defaultAmount={numberOfShares}
-              name={symbol}
-              price={+price}
-            />
-          </BotCard>
-        </>,
-      );
+  completion.onFunctionCall('show_stock_purchase_ui', ({ symbol, price, numberOfShares = 100 }) => {
+    if (numberOfShares <= 0 || numberOfShares > 1000) {
+      reply.done(<BotMessage>Invalid amount</BotMessage>);
       aiState.done([
         ...aiState.get(),
         {
           role: 'function',
           name: 'show_stock_purchase_ui',
-          content: `[UI for purchasing ${numberOfShares} shares of ${symbol}. Current price = ${price}, total cost = ${
-            numberOfShares * price
-          }]`,
+          content: `[Invalid amount]`,
         },
       ]);
-    },
-  );
+      return;
+    }
+
+    reply.done(
+      <>
+        <BotMessage>
+          Sure!{' '}
+          {typeof numberOfShares === 'number'
+            ? `Click the button below to purchase ${numberOfShares} shares of $${symbol}:`
+            : `How many $${symbol} would you like to purchase?`}
+        </BotMessage>
+        <BotCard showAvatar={false}>
+          <Purchase defaultAmount={numberOfShares} name={symbol} price={+price} />
+        </BotCard>
+      </>
+    );
+    aiState.done([
+      ...aiState.get(),
+      {
+        role: 'function',
+        name: 'show_stock_purchase_ui',
+        content: `[UI for purchasing ${numberOfShares} shares of ${symbol}. Current price = ${price}, total cost = ${
+          numberOfShares * price
+        }]`,
+      },
+    ]);
+  });
 
   return {
     id: Date.now(),
