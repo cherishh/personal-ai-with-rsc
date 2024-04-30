@@ -414,7 +414,7 @@ He is a fan of the TV series Friends.
       <BotCard>
         <Event time={[startTime, endTime]} headline={headline} description={description} />
         <SystemMessage>
-          <div>添加日程：{headline}</div>
+          <div>添加日程：{headline} (在real app中将添加事件到你的日历中，如outlook或iOS)</div>
         </SystemMessage>
       </BotCard>
     );
